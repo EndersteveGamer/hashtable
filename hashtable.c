@@ -136,11 +136,12 @@ void hashtable_create(struct hashtable *self) {
 void bucket_destroy(struct bucket *self) {
     if (self == NULL) return;
     bucket_destroy(self->next);
+    free(self->key);
     free(self);
 }
 
 void hashtable_destroy(struct hashtable *self) {
-    for (size_t i = 0; i < self->count; i++) bucket_destroy(self->buckets[i]);
+    for (size_t i = 0; i < self->size; i++) bucket_destroy(self->buckets[i]);
     free(self->buckets);
 }
 
@@ -187,6 +188,7 @@ bool bucket_remove(struct bucket *bucket, const char *key) {
     if (string_equal(bucket->next->key, key)) {
         struct bucket *removed = bucket->next;
         bucket->next = bucket->next->next;
+        free(removed->key);
         free(removed);
         return true;
     }
@@ -213,6 +215,7 @@ bool hashtable_remove(struct hashtable *self, const char *key) {
     if (string_equal(self->buckets[index]->key, key)) {
         struct bucket *removed = self->buckets[index];
         self->buckets[index] = removed->next;
+        free(removed->key);
         free(removed);
         self->count--;
         return true;
